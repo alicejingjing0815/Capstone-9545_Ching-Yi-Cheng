@@ -2,7 +2,7 @@
 title: "Capstone"
 subtitle: "Dyadic Confirmatory Factor Analysis"
 author: "Ching-Yi Cheng"
-date: "November 20, 2026"
+date: "November 26, 2026"
 format:
   html:
     toc: true
@@ -376,6 +376,7 @@ item_descriptives |>
     )
   )
 ```
+Item means ranged from 4.98 (QI5) to 5.87 (QI1, QI7, and QI8), indicating that participants generally evaluated their conversations positively. QI5 had the lowest mean and the largest standard deviation (SD = 1.65), suggesting more variability in perceived awkward pauses than in the other items. All items were negatively skewed, which is consistent with many responses near the upper end of the 1–7 scale. This ceiling pattern is one reason the continuous-ML treatment is described as a limitation. QI9 had slightly fewer nonmissing responses (N = 819) than the other items, but missingness was minimal for all items.
 
 # Part 3. Preliminary One-Factor CFA
 ## 3.1 Purpose and Estimation
@@ -568,6 +569,7 @@ individual_loadings |>
     decimals = 3
   )
 ```
+All items loaded positively and substantially on the single factor. In Test 2, standardized loadings ranged from .499 (QI3) to .878 (QI2). QI2 (smooth and coordinated) and QI4 (natural) were the strongest indicators, whereas QI3 (did not enjoy the interaction) was the weakest. The two items considered for removal, QI8 and QI9, had loadings of .701 and .733, higher than those of QI3, QI6, and QI7. Therefore, the psychometric evidence does not suggest that these items are poor indicators of the common factor. The estimated QI8–QI9 residual covariance was .145 (standardized = .287), indicating a modest amount of shared variance beyond the general factor.
 
 # Part 4. Construct the Dyadic Dataset
 ## 4.1 Assign Partner Labels
@@ -907,6 +909,7 @@ dyadic_fit_table |>
 ```
 D2 yielded `r fit_text(qi_dyad_fit2)`. Compared with D1, allowing the within-partner QI8–QI9 residual covariances increased CFI and TLI and reduced RMSEA. The seven-item model showed no consistent advantage across fit indices. D2 was therefore selected as the primary exploratory specification, retaining all nine items while accounting for the additional QI8–QI9 association.
 
+
 ## 5.7 Compare Partner Latent Correlations
 The partner latent correlation describes the association between partners' overall latent evaluations. It does not measure exact agreement in their response levels.
 
@@ -1089,20 +1092,58 @@ semPlot::semPaths(
 )
 ```
 
+```{r}
+#| label: model-selection-summary
+
+chisq_d1 <- unname(lavaan::fitMeasures(qi_dyad_fit1, "chisq"))
+chisq_d2 <- unname(lavaan::fitMeasures(qi_dyad_fit2, "chisq"))
+df_d1 <- unname(lavaan::fitMeasures(qi_dyad_fit1, "df"))
+df_d2 <- unname(lavaan::fitMeasures(qi_dyad_fit2, "df"))
+
+chisq_diff_d1_d2 <- chisq_d1 - chisq_d2
+df_diff_d1_d2 <- df_d1 - df_d2
+p_diff_d1_d2 <- pchisq(
+  chisq_diff_d1_d2,
+  df = df_diff_d1_d2,
+  lower.tail = FALSE
+)
+
+selection_table <- dyadic_fit_table |>
+  select(Model, chisq, df, cfi, tli, rmsea, srmr) |>
+  mutate(Partner_latent_r = partner_r_table$Partner_latent_r)
+
+selection_table |>
+  gt::gt() |>
+  gt::tab_header(title = "Dyadic Model Selection Summary") |>
+  gt::fmt_number(columns = chisq, decimals = 2) |>
+  gt::fmt_number(
+    columns = c(cfi, tli, rmsea, srmr, Partner_latent_r),
+    decimals = 3
+  )
+```
+
 # Part 7. Results, Interpretation, and Limitations
-## 7.1 Preliminary Measurement Results
+## 7.1 Selection of the Final Model
+D2, the nine-item dyadic model with separate QI8–QI9 residual covariances for each partner, was selected as the primary exploratory model for four reasons.
+First, D2 fit better than D1, which uses the same nine items without the residual covariances. CFI and TLI increased, RMSEA and SRMR decreased, and the chi-square difference was 355.29 (df = 132, p < .001).
+Second, D2 matched or modestly outperformed the seven-item model. CFI and TLI were essentially the same, whereas RMSEA and SRMR were lower for D2. Because the seven- and nine-item models contain different indicators, this comparison is descriptive.
+Third, QI8 and QI9 were substantial indicators of the common factor. Removing them reduced the content coverage of the scale without producing a clearly better measurement model.
+Fourth, the partner latent correlation was nearly unchanged across D1, D2, and D3, so the decision does not depend on obtaining a larger correlation.
+D2 is described as acceptable rather than excellent: CFI was just below .95, RMSEA was in the acceptable range, and some local misfit remained. Because the model was modified after examining the data and does not account for dependence across conversations, it is treated as an exploratory final model rather than a confirmed measurement model.
+
+## 7.2 Preliminary Measurement Results
 The initial nine-item one-factor model yielded `r fit_text(qi_fit1)`. Allowing a residual covariance between QI8 and QI9 yielded `r fit_text(qi_fit2)`. The seven-item sensitivity model yielded `r fit_text(qi_fit3)`. In the current results, allowing the QI8–QI9 residual covariance improved the descriptive fit of the nine-item model. Removing QI8 and QI9 did not produce a consistent improvement across fit indices. Because the seven- and nine-item models contain different observed indicators, their fit indices are interpreted descriptively rather than as a conventional nested-model comparison. Improved fit does not, by itself, establish that the revised model adequately captures every aspect of the item relationships.
 
-## 7.2 Dyadic Measurement Results
+## 7.3 Dyadic Measurement Results
 The initial nine-item dyadic model yielded `r fit_text(qi_dyad_fit1)`. The revised nine-item dyadic model, including separate QI8–QI9 residual covariances within each partner, yielded `r fit_text(qi_dyad_fit2)`. The seven-item dyadic model yielded `r fit_text(qi_dyad_fit_7)`. These dyadic fit results must be evaluated separately from the preliminary individual-record CFA results.
 
-## 7.3 Partner Latent Association
+## 7.4 Partner Latent Association
 The estimated partner latent correlation was `r fmt3(partner_correlation(qi_dyad_fit1))` in the initial nine-item dyadic model, `r fmt3(partner_correlation(qi_dyad_fit2))` in the revised nine-item model, and `r fmt3(partner_correlation(qi_dyad_fit_7))` in the seven-item model. The seven-item estimate differed from the initial nine-item estimate by `r fmt3(partner_correlation(qi_dyad_fit_7) - partner_correlation(qi_dyad_fit1))`. In the current results, these similar point estimates suggest that the positive association between partners' latent evaluations was not driven solely by QI8 and QI9. This finding concerns association rather than exact agreement. A positive correlation indicates that partners' evaluations tend to vary together across conversations; it does not imply identical ratings or equal average levels. The sensitivity analysis does not establish statistical equivalence between the correlations, and changes in the point estimates are not treated as evidence of statistically significant differences.
 
-## 7.4 Interpretation of QI8 and QI9
+## 7.5 Interpretation of QI8 and QI9
 QI8 and QI9 may both reflect general interaction quality while also sharing additional content related to comfort and positive feelings. Allowing a residual covariance acknowledges shared variation not captured by the general factor. It does not establish that the additional variation represents a distinct positive-affect factor or identify its cause. The seven-item analysis provides an alternative operationalization with narrower item coverage. Its results are useful for evaluating sensitivity to item inclusion, not for choosing whichever specification produces the largest partner correlation.
 
-## 7.5 Limitations
+## 7.6 Limitations
 First, participants contributed ratings to multiple conversations within sessions. The current dyadic models represent dependence between the two partners in a conversation through their factor covariance, but they do not account for dependence across conversations arising from repeated participants or shared sessions. Fit statistics, standard errors, and population-level inference therefore remain preliminary.
 Second, A and B are assigned by participant ID rather than by theoretically meaningful roles. Separate measurement parameters are estimated for each position. These models do not establish exchangeability or measurement equivalence across partners. Partner equality constraints and the implications of the labeling scheme require further consideration.
 Third, the seven-category item responses are treated as continuous under maximum likelihood estimation. Analyses using an ordinal-data estimator could be considered as an additional sensitivity analysis, with appropriate attention to differences in missing-data handling and model estimation.

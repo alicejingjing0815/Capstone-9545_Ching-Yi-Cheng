@@ -951,9 +951,38 @@ semPlot::semPaths(
 )
 
 
+#| label: model-selection-summary
+
+chisq_d1 <- unname(lavaan::fitMeasures(qi_dyad_fit1, "chisq"))
+chisq_d2 <- unname(lavaan::fitMeasures(qi_dyad_fit2, "chisq"))
+df_d1 <- unname(lavaan::fitMeasures(qi_dyad_fit1, "df"))
+df_d2 <- unname(lavaan::fitMeasures(qi_dyad_fit2, "df"))
+
+chisq_diff_d1_d2 <- chisq_d1 - chisq_d2
+df_diff_d1_d2 <- df_d1 - df_d2
+p_diff_d1_d2 <- pchisq(
+  chisq_diff_d1_d2,
+  df = df_diff_d1_d2,
+  lower.tail = FALSE
+)
+
+selection_table <- dyadic_fit_table |>
+  select(Model, chisq, df, cfi, tli, rmsea, srmr) |>
+  mutate(Partner_latent_r = partner_r_table$Partner_latent_r)
+
+selection_table |>
+  gt::gt() |>
+  gt::tab_header(title = "Dyadic Model Selection Summary") |>
+  gt::fmt_number(columns = chisq, decimals = 2) |>
+  gt::fmt_number(
+    columns = c(cfi, tli, rmsea, srmr, Partner_latent_r),
+    decimals = 3
+  )
+
 # Part 7. Results, Interpretation, and Limitations
-## 7.1 Preliminary Measurement Results
-## 7.2 Dyadic Measurement Results
-## 7.3 Partner Latent Association
-## 7.4 Interpretation of QI8 and QI9
-## 7.5 Limitations
+## 7.1 Selection of the Final Model
+## 7.2 Preliminary Measurement Results
+## 7.3 Dyadic Measurement Results
+## 7.4 Partner Latent Association
+## 7.5 Interpretation of QI8 and QI9
+## 7.6 Limitations
